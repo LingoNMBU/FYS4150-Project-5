@@ -1,2 +1,2 @@
-# FYS4150-Project4
-Project 4 - Schroedinger simulation
+# FYS4150-Project5
+Project 5 - Schroedinger simulation
