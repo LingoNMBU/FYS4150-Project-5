@@ -16,8 +16,8 @@ int main()
         int L = m * m;
 
         arma::mat V = arma::mat(m,m, arma::fill::randu);
-        arma::cx_mat A = arma::cx_mat(L,L).fill(arma::cx_double(0, 0));
-        arma::cx_mat B = arma::cx_mat(L,L).fill(arma::cx_double(0, 0));
+        arma::cx_mat A = arma::cx_mat(L,L);
+        arma::cx_mat B = arma::cx_mat(L,L);
 
         make_matrices( M, h, dt, V, A, B);
 
@@ -32,66 +32,64 @@ int main()
     bool test2 = false;
     if (test2)
     {
-        double dt1 = 0.1;
-        double h1 = 0.1;
-        int M1 = 5;
-        double T1 = 10.0;
-        int L1 = (M1-2) * (M1-2);
+        //sim params
+        double h1   = 0.25; //Stepsize space
+        double dt1  = 2.5e-5; //Stepsize time
+        double T1 = 2.5e-5; //Stepsize time        
 
-        arma::mat V1 = arma::mat(M1-2,M1-2, arma::fill::randu);
+        Wavebox catbox1 = Wavebox(h1, dt1, T1);
 
-        arma::cx_mat A1 = arma::cx_mat(L1,L1).fill(arma::cx_double(0, 0));
-        arma::cx_mat B1 = arma::cx_mat(L1,L1).fill(arma::cx_double(0, 0));
-
-        Wavebox catbox1 = Wavebox(M1, V1, dt1, T1);
+        int L1 = catbox1.L;
+        arma::sp_cx_mat A1 = arma::sp_cx_mat(L1,L1);
+        arma::sp_cx_mat B1 = arma::sp_cx_mat(L1,L1);
 
         catbox1.make_matrices(A1,B1);
 
+        arma::cx_mat A2(A1);
+        arma::cx_mat B2(B1);
+
         cout << "A1" << endl;
-        cout << A1 << endl;
+        cout << A2 << endl;
         cout << endl;
         cout << "B1" << endl;
-        cout << B1 << endl;
+        cout << B2 << endl;
         cout << endl;
     }
 
-
-        bool test3 = true;
-    if (test3)
+    bool test_coords = false;
+    if (test_coords)
     {
-        double dt2 = 0.01;
-        double h2 = 0.01;
-        int M2 = 5;
-        double T2 = 1.0;
-        int L2 = (M2-2) * (M2-2);
+        double h1   = 0.25; //Stepsize space
+        double dt1  = 2.5e-5; //Stepsize time
+        double T1 = 2.5e-5; //Stepsize time 
 
-        double x_c2 = 0.5; 
-        double y_c2 = 0.5;
-        double p_x2 = 0.1;
-        double p_y2 = 0.1;
-        double s_x2 = 0.05;
-        double s_y2 = 0.05;
+        int dim = 100;  
 
-        arma::mat V2 = arma::mat(M2-2,M2-2, arma::fill::randu);
+        arma::cx_mat mat1 = arma::cx_mat(dim,dim, arma::fill::randu);
 
-        Wavebox catbox2 = Wavebox(M2, V2, dt2, T2);
+        Wavebox catbox3 = Wavebox(h1, dt1, T1);
 
-        catbox2.initialize_packet(x_c2, y_c2, p_x2, p_y2, s_x2, s_y2);
 
-        catbox2.simulate();
+        arma::cx_vec vec1 = catbox3.convert_to_vector(mat1, dim);
+
+        arma::cx_mat mat2 = catbox3.convert_to_matrix(vec1, dim*dim);
+
+        arma::cx_vec vec2 = catbox3.convert_to_vector(mat2, dim);
+
+        assert(arma::approx_equal(mat1, mat2, "absdiff", 0.0001));
+        assert(arma::approx_equal(vec1, vec2, "absdiff", 0.0001));
     }
 
-    bool test4 = true;
+    bool test4 = false;
     if (test4)
     {
         double dt3 = 0.01;
         int M3 = 100;
+        double h3 = 1./M3;
         double T3 = 1.0;
-        int L3 = (M3-2) * (M3-2);
+        double v_03 = 100. ;
 
-        arma::mat V3 = arma::mat(M3-2,M3-2, arma::fill::randu);
-
-        Wavebox catbox3 = Wavebox(M3, V3, dt3, T3);
+        Wavebox catbox3 = Wavebox(h3, dt3, T3);
 
         double x_thick = 0.02;
         double x_center = 0.5;
@@ -102,7 +100,7 @@ int main()
         slit_widths.push_back(0.05);
         wall_widths.push_back(0.05);
 
-       catbox3.generate_slit_potential(x_thick ,x_center ,n_slits, slit_widths ,wall_widths);
+       catbox3.generate_slit_potential(x_thick ,x_center ,n_slits, slit_widths ,wall_widths, v_03);
        arma::mat V = catbox3.V;
 
         std::cout << std::endl << std::endl;
@@ -111,33 +109,76 @@ int main()
     }
 
     bool test5 = false;
+    
     if (test5)
     {
-        double dt5 = 0.01;
-        int M5 = 100;
-        double T5 = 1.0;
-        int L5 = (M5-2) * (M5-2);
+        //sim params
+        double h   = 0.005; //Stepsize space
+        double dt  = 2.5e-5; //Stepsize time
+        double T   = 0.008; //Max time
 
-        double x_thick = 0.02;
-        double x_center = 0.5;
-        int n_slits = 1;
-        std::vector<double> slit_widths;
-        std::vector<double> wall_widths;
+        //Packet params
+        double c_x = 0.25; //packet start center x
+        double s_x = 0.05; //packet start std x
+        double p_x = 200.; //packet start momentum x
+        double c_y = 0.5; //packet start center y
+        double s_y = 0.05; //packet start std y
+        double p_y = 0.0; //packet start momentum y
 
-        slit_widths.push_back(0.05);
-        wall_widths.push_back(0.05);
+        Wavebox catbox5 = Wavebox(h, dt, T);
 
-
-        arma::mat V5 = arma::mat(M5-2,M5-2, arma::fill::randu);
-
-        Wavebox catbox5 = Wavebox(M5, V5, dt5, T5);
-        
-        catbox5.generate_slit_potential(x_thick ,x_center ,n_slits, slit_widths ,wall_widths);
-        arma::mat V = catbox5.V;
+        catbox5.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
+        arma::cx_vec u = catbox5.u;
 
         std::cout << std::endl << std::endl;
-        std::cout << V << std::endl;
+        std::cout << arma::size(u) << std::endl;
         std::cout << std::endl;
+
+        std::cout << std::endl << std::endl;
+        std::cout << arma::accu(arma::conj(u)%u)<< std::endl;
+        std::cout << std::endl;
+
+    }
+    bool test6 = true;
+    
+    if (test6)
+    {
+        //sim params
+        double h   = 0.005; //Stepsize space
+        double dt  = 2.5e-5; //Stepsize time
+        double T   = 0.0008; //Max time
+
+        //Packet params
+        double c_x = 0.25; //packet start center x
+        double s_x = 0.05; //packet start std x
+        double p_x = 200.; //packet start momentum x
+        double c_y = 0.5; //packet start center y
+        double s_y = 0.05; //packet start std y
+        double p_y = 0.0; //packet start momentum y
+
+        Wavebox catbox6 = Wavebox(h, dt, T);
+
+        catbox6.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
+        arma::cx_vec u = catbox6.u;
+
+        std::cout << std::endl << std::endl;
+        std::cout << arma::size(u) << std::endl;
+        std::cout << std::endl;
+
+        std::cout << std::endl << std::endl;
+        std::cout << arma::accu(arma::conj(u)%u)<< std::endl;
+        std::cout << std::endl;
+
+        catbox6.simulate(false,true);
+
+        arma::cx_vec p_sum = catbox6.p_sum;
+
+        std::cout << std::endl << std::endl;
+        std::cout << p_sum << std::endl;
+        std::cout << std::endl;
+
+
+
     }
 return 0;
 
