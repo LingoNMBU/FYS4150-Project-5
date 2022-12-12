@@ -14,39 +14,52 @@ int main()
     double p_x = 200.; //packet start momentum x
     double c_y = 0.5; //packet start center y
     double s_y = 0.05; //packet start std y
+    double s_y2 = 0.1; //packet start std y
     double p_y = 0.0; //packet start momentum y
 
     //potential params
-    double v_0 = 0.0; //potential
+    double v_0 = 1.e10; //potential
     double x_thick = 0.02;
     double x_center = 0.5;
     double slit_width1 = 0.05;
+    double slit_width2 = 0.05;
     double wall_width1 = 0.05;
-    int n_slits = 1;
+    int n_slits = 2;
     std::vector<double> slit_widths;
     std::vector<double> wall_widths;
-    slit_widths.push_back(0.05);
-    wall_widths.push_back(0.05);
+    slit_widths.push_back(slit_width1);
+    slit_widths.push_back(slit_width2);
+    wall_widths.push_back(wall_width1);
 
-    bool prob7 = true;
-    if (prob7)
+    bool prob7a = true;
+    if (prob7a)
     {
-        Wavebox catbox7 = Wavebox(h, dt, T);
+        Wavebox catbox7a = Wavebox(h, dt, T);
 
-        catbox7.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
-        arma::cx_vec u = catbox7.u;
+        catbox7a.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
 
-        catbox7.simulate(false,true);
+        catbox7a.simulate(false,true);
 
-        arma::cx_vec p_sum = catbox7.p_sum;
+        arma::cx_vec p_sum = catbox7a.p_sum;
 
-        std::cout << std::endl << std::endl;
-        std::cout << p_sum << std::endl;
-        std::cout << std::endl;
-
-        p_sum.save("prob7");
+        p_sum.save("prob7a");
     }
 
+    bool prob7b = true;
+    if (prob7b)
+    {
+        Wavebox catbox7b = Wavebox(h, dt, T);
+
+        catbox7b.generate_slit_potential(x_thick, x_center, n_slits ,slit_widths ,wall_widths ,v_0);
+
+        catbox7b.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y2);
+
+        catbox7b.simulate(false,true);
+
+        arma::cx_vec p_sum = catbox7b.p_sum;
+
+        p_sum.save("prob7b_psum");
+    }
     
 
 

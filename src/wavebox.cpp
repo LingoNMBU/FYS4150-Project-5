@@ -13,17 +13,13 @@ Wavebox::Wavebox(double h_in, double dt_in, double T_in)
     m = M-2; //Number of internal points
     L = m*m; //number of elements in internal matrices
     N_steps = round(T/dt);
-    //std::cout << std::endl << std::endl;
-    //std::cout << round(1. + 1./h_in) << std::endl;
-    //std::cout << std::endl;
 
     u = arma::cx_vec(L); // init wavefunction vector
     V = arma::mat(M,M).fill(0.);
 
     //Initialize datastoring
     p_sum = arma::cx_vec(N_steps).fill(arma::cx_double(0,0));
-    //us = arma::cx_mat(N_steps, L); //might cause memory issues
-
+    u_cube = arma::cx_cube(m, m, N_steps); 
 }
 
 // Change the spin of a single particle in the lattice
@@ -37,10 +33,6 @@ int Wavebox::coords_mat_to_vec(int i, int j, int m)
     //0    1    2    3    4    5    6    7    8
     //0,0  1,0  2,0  0,1  1,1  2,1  0,2  1,2  2,2
 
-    //m=3
-
-    //TODO test this function
-    //TODO remove L as variable
     int k = j*m + i;
     return k;
 }
@@ -55,11 +47,6 @@ arma::ivec Wavebox::coords_vec_to_mat(int k, int m)
     //0    1    2    3    4    5    6    7    8
     //0,0  1,0  2,0  0,1  1,1  2,1  0,2  1,2  2,2
 
-    //m=3
-
-    //TODO test this function
-    //TODO remove L as variable
-
     int i = k%m;
     int j = k/m;
 
@@ -70,7 +57,8 @@ arma::ivec Wavebox::coords_vec_to_mat(int k, int m)
 
 arma::cx_mat Wavebox::convert_to_matrix(arma::cx_vec vec, int old_dim)
 {
-    int new_dim = int(sqrt(old_dim));
+
+    int new_dim = sqrt(old_dim);
     arma::cx_mat mat = arma::cx_mat(new_dim, new_dim);
 
     for (int i=0 ; i < old_dim; i++)
@@ -91,83 +79,12 @@ arma::cx_vec Wavebox::convert_to_vector(arma::cx_mat mat, int old_dim)
         for (int j=0; j < old_dim; j++)
         {
             int coord = coords_mat_to_vec(i, j, old_dim);
-            //std::cout << std::endl;
-            //std::cout << i << std::endl;
-            //std::cout << std::endl;
-
-            //std::cout << std::endl;
-            //std::cout << j << std::endl;
-            //std::cout << std::endl;
-
-            //std::cout << std::endl;
-            //std::cout << coord << std::endl;
-            //std::cout << std::endl;
 
             vec(coord) = mat(i,j);
         }
     }
     return vec;
 }
-
-
-//void Wavebox::make_matrices(arma::sp_cx_mat& A, arma::sp_cx_mat& B)
-//{
-//    //Constructs the A and B matrices
-//    double r = dt/(2.*h*h);
-//
-//    arma::cx_vec a = arma::cx_vec(L);
-//    arma::cx_vec b = arma::cx_vec(L);
-//
-//    for (int k = 0 ; k < L ; k++)
-//    {
-//        arma::ivec coords = coords_vec_to_mat(k, m);
-//        
-//        double real = 1.;
-//        double imag_a =  4.*r + (dt/2)*V(coords(0), coords(1));
-//        double imag_b = -4.*r - (dt/2)*V(coords(0), coords(1));
-//
-//        a(k) = arma::cx_double(real, imag_a);
-//        b(k) = arma::cx_double(real, imag_b);
-//    }
-//
-//    //THis is mad, there must be a better way if extra time or super slow
-//    for (int i=0 ; i<L ; i++)
-//    {
-//        for(int j=0 ; j < L ; j++)
-//        {
-//            //If on main diagonal
-//            if (i==j)
-//            {
-//                A(i,j) = a(i);
-//                B(i,j) = b(i);
-//            }
-//
-//            //If on third diagonal 
-//            if(abs(j-i) == 3)
-//            {
-//                A(i,j) = -r;
-//                B(i,j) = r;
-//            }
-//            //If on first diagonal
-//            if(abs(i-j) == 1)
-//            {   
-//                //If on the element between the M-2 submatrices, aka boundary condition
-//                if((i%m == 0 and j%m == m-1) or (i%m == m-1 and j%m == 0))
-//                {
-//                    //Assumed 0 from start by sparse matrix
-//                    //A(i,j) = arma::cx_double(0, 0);
-//                    //B(i,j) = arma::cx_double(0, 0);
-//                }
-//                //Else inside the submatrices
-//                else
-//                {
-//                    A(i,j) =-r;
-//                    B(i,j) = r;
-//                }
-//            }
-//        }
-//    }
-//} 
 
 void Wavebox::make_matrices(arma::sp_cx_mat& A, arma::sp_cx_mat& B)
 {
@@ -191,7 +108,6 @@ void Wavebox::make_matrices(arma::sp_cx_mat& A, arma::sp_cx_mat& B)
         //diagonals
     for (int i=0; i<L; i++)
     {
-
         A(i,i) = a(i);
         B(i,i) = b(i);
     }
@@ -213,9 +129,9 @@ void Wavebox::make_matrices(arma::sp_cx_mat& A, arma::sp_cx_mat& B)
         B.diag( 1)(i) = 0;
         B.diag(-1)(i) = 0;
     }
-    std::cout << "made dem matrices" << std::endl;
-    std::cout << "made dem matrices" << std::endl;
-    std::cout << "made dem matrices" << std::endl;
+    std::cout << std::endl;
+    std::cout << "made A and B matrices" << std::endl;
+    std::cout << std::endl;
 
 } 
 
@@ -229,16 +145,6 @@ void Wavebox::initialize_packet(double x_c, double y_c, double p_x, double p_y, 
         for (int j=0; j < m; j++)
         {
             //Boundary condition by only iterating over internal points -> border points are always zero
-            //if (y*x == 0)
-            //{
-            //    u(k) = arma::cx_double(0.0, 0.0)
-            //}
-            //if (i == m or j == m)
-
-            if (i == 0 || i == m - 1 || j == 0 || j == m - 1)
-            {
-                continue;
-            }
 
             double x = i*h;
             double y = j*h;
@@ -247,36 +153,29 @@ void Wavebox::initialize_packet(double x_c, double y_c, double p_x, double p_y, 
             double u_real = -pow(x-x_c,2) / (2.*s_x*s_x) - pow(y-y_c,2) / (2.*s_y*s_y);
             double u_imag = p_x*(x-x_c) + p_y*(y-y_c);
 
-            int k = coords_mat_to_vec(i, j, m);
+            int k = coords_mat_to_vec(j, i, m);
 
             u(k) = exp(arma::cx_double(u_real, u_imag));
         }
     }
-    //Probability ums to 1
+    //Probability should sum to 1
     arma::cx_double probsum = arma::accu(arma::conj(u)%u); 
     //arma::cx_double probsum = sqrt(arma::accu(arma::real(u)%arma::real(u) + arma::imag(u)%arma::imag(u))); 
 
     u = u*sqrt(1./probsum); // A^2 *probsum = 1 -> A = sqrt(1/probsum) -> u* sqrt(1/probsum)
 
-    //std::cout << std::endl << std::endl;
-    //std::cout << arma::accu(arma::conj(u)%u)<< std::endl;
-    //std::cout << std::endl;
-
-
-        
-
+    std::cout << std::endl;
+    std::cout << "initialized gaussian wavepacket at x, y = " << std::endl;
+    std::cout << x_c << std::endl;
+    std::cout << y_c << std::endl;
+    std::cout << std::endl;
 
 }
 
 void Wavebox::generate_slit_potential(double x_thick, double x_center, int n_slits, std::vector<double> slit_widths , std::vector<double> wall_widths, double v0)
 {
-     //std::cout << std::endl;
-     //std::cout << M << std::endl;
-     //std::cout << std::endl;
-
-
-    arma::mat V_new = arma::mat(M,M).fill(0);
-    int mid_ind = round(M/2);
+    arma::mat V_new = arma::mat(M,M).fill(0.);
+    int mid_ind = round(M/2.);
 
     if (n_slits == 1)
     {
@@ -284,22 +183,147 @@ void Wavebox::generate_slit_potential(double x_thick, double x_center, int n_sli
      int slit_end   =  round((mid_ind*h + slit_widths[0] / 2.) / h);
 
      int slit_w_start   =  round((mid_ind*h - x_thick / 2.) / h);
-     int slit_w_end     =  round((mid_ind*h + x_thick / 2.) / h);
-
+     int slit_w_end     =  round((mid_ind*h + x_thick / 2.) / h);     
      
-     
-     for(int i = 0 ; i < M ; i++)
-        if (i < slit_start or i > slit_end)
-        {
-            for (int j = slit_w_start; j < slit_w_end; j++)
+        for(int i = 0 ; i < M ; i++)
+            if (i < slit_start or i > slit_end)
             {
-                V_new(i, j) = v0;
-            }           
+                for (int j = slit_w_start; j < slit_w_end+1; j++)
+                {
+                    V_new(i, j) = v0;
+                }           
+            }
+        std::cout << std::endl;
+        std::cout << "mid" << std::endl;
+        std::cout << mid_ind << std::endl;
+        std::cout << std::endl;
+
+        std::cout << std::endl;
+        std::cout << "start1" << std::endl;
+        std::cout << slit_start << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "end1" << std::endl;
+        std::cout << slit_end << std::endl;
+        std::cout << std::endl;
+    }
+
+    if (n_slits == 2)
+    {
+        int slit1_start =  round((mid_ind*h - wall_widths[0] / 2. - slit_widths[0]) / h);
+        int slit1_end   =  round((mid_ind*h - wall_widths[0] / 2.) / h);
+
+        int slit2_start =  round((mid_ind*h + wall_widths[0] / 2.) / h);
+        int slit2_end   =  round((mid_ind*h + wall_widths[0] / 2. + slit_widths[1]) / h);
+
+        int slit_w_start   =  round((mid_ind*h - x_thick / 2.) / h);
+        int slit_w_end     =  round((mid_ind*h + x_thick / 2.) / h);     
+
+        std::cout << std::endl;
+        std::cout << "mid" << std::endl;
+        std::cout << mid_ind << std::endl;
+        std::cout << std::endl;
+
+        std::cout << std::endl;
+        std::cout << "start1" << std::endl;
+        std::cout << slit1_start << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "end1" << std::endl;
+        std::cout << slit1_end << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "start2" << std::endl;
+        std::cout << slit2_start << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "end2" << std::endl;
+        std::cout << slit2_end << std::endl;
+        std::cout << std::endl;
+     
+        for(int i = 0 ; i < M ; i++)
+        {
+            if ((i < slit1_start) or (i > slit1_end and i < slit2_start) or (i > slit2_end))
+            {
+                for (int j = slit_w_start; j < slit_w_end+1; j++)
+                {
+                    V_new(i, j) = v0;
+                }           
+            }
+        }
+    }        
+
+
+    if (n_slits == 3)
+    {
+        int slit1_start =  round((mid_ind*h - slit_widths[1] / 2. - wall_widths[0] - slit_widths[0]) / h);
+        int slit1_end   =  round((mid_ind*h - slit_widths[1] / 2. - wall_widths[0]) / h);
+
+        int slit2_start =  round((mid_ind*h - slit_widths[1] / 2) / h);
+        int slit2_end   =  round((mid_ind*h + slit_widths[1] / 2) / h);
+
+        int slit3_start =  round((mid_ind*h + slit_widths[1] / 2. + wall_widths[1]) / h);
+        int slit3_end   =  round((mid_ind*h + slit_widths[1] / 2. + wall_widths[1] + slit_widths[2]) / h);
+
+        //int wall1_start  =  round((mid_ind*h - slit_widths[1] / 2. - wall_widths[0]) / h);
+        //int wall1_end    =  round((mid_ind*h - slit_widths[1] / 2.) / h);     
+
+        //int wall2_start  =  round((mid_ind*h + slit_widths[1] / 2.) / h);
+        //int wall2_end    =  round((mid_ind*h + slit_widths[2] / 2. + wall_widths[1]) / h);     
+
+        int slit_w_start   =  round((mid_ind*h - x_thick / 2.) / h);
+        int slit_w_end     =  round((mid_ind*h + x_thick / 2.) / h);
+
+        std::cout << std::endl;
+        std::cout << "mid" << std::endl;
+        std::cout << mid_ind << std::endl;
+        std::cout << std::endl;
+
+        std::cout << std::endl;
+        std::cout << "start1" << std::endl;
+        std::cout << slit1_start << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "end1" << std::endl;
+        std::cout << slit1_end << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "start2" << std::endl;
+        std::cout << slit2_start << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "end2" << std::endl;
+        std::cout << slit2_end << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "start3" << std::endl;
+        std::cout << slit3_start << std::endl;
+        std::cout << std::endl;
+
+        std::cout << "end3" << std::endl;
+        std::cout << slit3_end << std::endl;
+        std::cout << std::endl;
+
+        for(int i = 0 ; i < M ; i++)
+        {
+            if ((i < slit1_start) or (i > slit1_end and i < slit2_start) or (i > slit2_end and i < slit3_start) or (i > slit3_end))
+            {
+                for (int j = slit_w_start; j < slit_w_end+1; j++)
+                {
+                    V_new(i, j) = v0;
+                }           
+            }
         }
     }
 
+    //Store V
     V = V_new;
-    //return V;
+
+    std::cout << std::endl;
+    std::cout << "set up potential with n_slits =" << std::endl;
+    std::cout << n_slits << std::endl;
+    std::cout << std::endl;
+
 }
 
 
@@ -328,17 +352,36 @@ void Wavebox::simulate(bool store_u, bool store_p_sum)
         p_sum(0) = arma::accu(arma::conj(u)%u);
     }
 
+    std::cout << std::endl;
+    std::cout << "Started simulations, number of steps is" << std::endl;
+    std::cout << N_steps << std::endl;
+    std::cout << std::endl;
+
+    auto start = std::chrono::high_resolution_clock::now();
+
     //double T_curr = 0;
     for (int t=1; t < N_steps; t++)
     {
+        if (t%10 == 0)
+        {
+            auto stop = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
+
+            std::cout << "duration [s]" << std::endl;
+            std::cout << duration.count() << std::endl;
+            std::cout << std::endl;
+
+            double ETA = (duration.count()/t)*(N_steps-t);
+
+            std::cout << "ETA [s]" << std::endl;
+            std::cout << ETA << std::endl;
+            std::cout << std::endl;
+        }
         //step 1, matrix multiplication
         arma::cx_vec b = B*u;
 
         //step 2, solve equations
         arma::cx_vec u1 = arma::spsolve(A,b);
-
-
-        //TODO INVESTIGATE A AND B, check that eigenvalues are less or equal to 1, check that the matrices are correct
 
         //Update values
         u = u1;
@@ -349,19 +392,12 @@ void Wavebox::simulate(bool store_u, bool store_p_sum)
             p_sum(t) = arma::accu(arma::conj(u1)%u1);
         }
 
-        //if (store_u)
-        //{
-        //    us(t, arma::span::all) = u;
-        //}
-
-        //Move time
-        //T_curr += dt;
+        if (store_u)
+        {
+            arma::cx_mat u_mat = convert_to_matrix(u,L);
+            u_cube.slice(t) = u_mat;
+        }
     }
-
 }
-
-
-
-
 
 #endif 

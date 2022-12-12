@@ -108,6 +108,44 @@ int main()
         std::cout << std::endl;
     }
 
+    bool test_double_slit = true;
+    if (test_double_slit)
+    {
+        //sim params
+        double h   = 0.005; //Stepsize space
+        double dt  = 2.5e-5; //Stepsize time
+        double T   = 0.002; //Max time
+        double v_03 = 1.e10 ;
+
+        Wavebox catbox3 = Wavebox(h, dt, T);
+
+        double x_thick = 0.02;
+        double x_center = 0.5;
+        int n_slits = 2;
+        std::vector<double> slit_widths;
+        std::vector<double> wall_widths;
+
+        slit_widths.push_back(0.05);
+        slit_widths.push_back(0.05);
+        slit_widths.push_back(0.05);
+        wall_widths.push_back(0.05);
+        wall_widths.push_back(0.05);
+
+        catbox3.generate_slit_potential(x_thick ,x_center ,1, slit_widths ,wall_widths, v_03);
+        arma::mat V1 = catbox3.V;
+        V1.save("V_single");
+
+        catbox3.generate_slit_potential(x_thick ,x_center ,2, slit_widths ,wall_widths, v_03);
+        arma::mat V2 = catbox3.V;
+        V2.save("V_double");
+
+        catbox3.generate_slit_potential(x_thick ,x_center ,3, slit_widths ,wall_widths, v_03);
+        arma::mat V3 = catbox3.V;
+        V3.save("V_triple");
+
+    }
+
+
     bool test5 = false;
     
     if (test5)
@@ -139,7 +177,7 @@ int main()
         std::cout << std::endl;
 
     }
-    bool test6 = true;
+    bool test6 = false;
     
     if (test6)
     {

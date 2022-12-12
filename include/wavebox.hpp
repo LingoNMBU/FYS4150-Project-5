@@ -18,7 +18,7 @@ class Wavebox
     double T, dt, h, x_c, y_c, p_x, p_y, s_x,s_y, v_0;
     arma::cx_vec u;
     arma::cx_vec p_sum;
-    arma::cx_mat us;
+    arma::cx_cube u_cube;
 
     //constructor
     Wavebox(double h_in, double dt_in, double T_in);
