@@ -1,33 +1,8 @@
 #include "wavebox.hpp"
-#include "functions.hpp"
 using namespace std;
 
 int main()
 {
-
-    bool test1 = false;
-
-    if (test1)
-    {
-        double dt = 0.1;
-        double h = 0.1;
-        int M = 5;
-        int m = M-2;
-        int L = m * m;
-
-        arma::mat V = arma::mat(m,m, arma::fill::randu);
-        arma::cx_mat A = arma::cx_mat(L,L);
-        arma::cx_mat B = arma::cx_mat(L,L);
-
-        make_matrices( M, h, dt, V, A, B);
-
-        cout << "A" << endl;
-        cout << A << endl;
-        cout << endl;
-        cout << "B" << endl;
-        cout << B << endl;
-        cout << endl;
-    }
 
     bool test2 = false;
     if (test2)
