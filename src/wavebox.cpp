@@ -18,8 +18,8 @@ Wavebox::Wavebox(double h_in, double dt_in, double T_in)
     V = arma::mat(M,M).fill(0.);
 
     //Initialize datastoring
-    p_sum = arma::cx_vec(N_steps).fill(arma::cx_double(0,0));
-    u_cube = arma::cx_cube(m, m, N_steps); 
+    p_sum = arma::cx_vec(N_steps+1).fill(arma::cx_double(0,0));
+    u_cube = arma::cx_cube(m, m, N_steps+1); 
 }
 
 // Change the spin of a single particle in the lattice
@@ -121,7 +121,7 @@ void Wavebox::make_matrices(arma::sp_cx_mat& A, arma::sp_cx_mat& B)
     B.diag( m).fill(r);
     B.diag(-m).fill(r);
 
-    for (int i = m-1; i < L-2; i+=3)
+    for (int i = m-1; i < L-(m-1); i+=m)
     {
         //Setting boundary condition zeroes
         A.diag( 1)(i) = 0;
@@ -146,11 +146,10 @@ void Wavebox::initialize_packet(double x_c, double y_c, double p_x, double p_y, 
         {
             //Boundary condition by only iterating over internal points -> border points are always zero
 
-            double x = i*h;
-            double y = j*h;
+            double x = h +(i)*h;
+            double y = h +(j)*h;
 
-
-            double u_real = -pow(x-x_c,2) / (2.*s_x*s_x) - pow(y-y_c,2) / (2.*s_y*s_y);
+            double u_real = -(pow(x-x_c,2.) / (2.*s_x*s_x)) - (pow(y-y_c,2.) / (2.*s_y*s_y));
             double u_imag = p_x*(x-x_c) + p_y*(y-y_c);
 
             int k = coords_mat_to_vec(j, i, m);
@@ -160,14 +159,17 @@ void Wavebox::initialize_packet(double x_c, double y_c, double p_x, double p_y, 
     }
     //Probability should sum to 1
     arma::cx_double probsum = arma::accu(arma::conj(u)%u); 
-    //arma::cx_double probsum = sqrt(arma::accu(arma::real(u)%arma::real(u) + arma::imag(u)%arma::imag(u))); 
 
-    u = u*sqrt(1./probsum); // A^2 *probsum = 1 -> A = sqrt(1/probsum) -> u* sqrt(1/probsum)
+    u = u*sqrt(1./probsum); // A^2  *probsum = 1 -> A = sqrt(1/probsum) -> u* sqrt(1/probsum)
 
     std::cout << std::endl;
     std::cout << "initialized gaussian wavepacket at x, y = " << std::endl;
     std::cout << x_c << std::endl;
     std::cout << y_c << std::endl;
+    std::cout << std::endl;
+    std::cout << "with center indexes x_ind, y_ind =" << std::endl;
+    std::cout << ((x_c-h)/h) << std::endl;
+    std::cout << ((y_c-h)/h) << std::endl;
     std::cout << std::endl;
 
 }
@@ -175,7 +177,7 @@ void Wavebox::initialize_packet(double x_c, double y_c, double p_x, double p_y, 
 void Wavebox::generate_slit_potential(double x_thick, double x_center, int n_slits, std::vector<double> slit_widths , std::vector<double> wall_widths, double v0)
 {
     arma::mat V_new = arma::mat(M,M).fill(0.);
-    int mid_ind = round(M/2.);
+    int mid_ind = round((M-1)/2.);
 
     if (n_slits == 1)
     {
@@ -323,6 +325,7 @@ void Wavebox::generate_slit_potential(double x_thick, double x_center, int n_sli
     std::cout << "set up potential with n_slits =" << std::endl;
     std::cout << n_slits << std::endl;
     std::cout << std::endl;
+    
 
 }
 
@@ -340,16 +343,21 @@ void Wavebox::simulate(bool store_u, bool store_p_sum)
     //TODO, find elegant way to initialize packet from all dem variables
     //for now, assume already set up 
 
-    //3. Initialize and create Crank-Nicholson matrices
+    //3. Initialize and create Crank-Nicolson matrices
 
     arma::sp_cx_mat A = arma::sp_cx_mat(L,L);
     arma::sp_cx_mat B = arma::sp_cx_mat(L,L);
     make_matrices(A,B);
 
-
+    //Initialization
     if (store_p_sum)
     {
         p_sum(0) = arma::accu(arma::conj(u)%u);
+    }
+    if (store_u)
+    {
+        arma::cx_mat u_mat = convert_to_matrix(u,L);
+        u_cube.slice(0) = u_mat;
     }
 
     std::cout << std::endl;
@@ -360,7 +368,7 @@ void Wavebox::simulate(bool store_u, bool store_p_sum)
     auto start = std::chrono::high_resolution_clock::now();
 
     //double T_curr = 0;
-    for (int t=1; t < N_steps; t++)
+    for (int t=1; t < N_steps+1; t++)
     {
         if (t%10 == 0)
         {

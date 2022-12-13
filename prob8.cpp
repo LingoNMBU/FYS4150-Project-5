@@ -34,6 +34,22 @@ int main()
     wall_widths.push_back(wall_width1);
     wall_widths.push_back(wall_width1);
 
+
+
+    bool prob8_noV = true;
+    if (prob8_noV)
+    {
+        Wavebox catbox8a = Wavebox(h, dt, T);
+
+        catbox8a.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
+
+        catbox8a.simulate(true, false);
+
+        arma::cx_cube u_cube = catbox8a.u_cube;
+
+        u_cube.save("prob8_u_cube_noV");
+    }
+
     bool prob8_single = true;
     if (prob8_single)
     {
@@ -47,7 +63,7 @@ int main()
 
         arma::cx_cube u_cube = catbox8a.u_cube;
 
-        u_cube.save("prob8a_u_cube_single");
+        u_cube.save("prob8_u_cube_single");
     }
 
     bool prob8_double = true;
@@ -63,7 +79,7 @@ int main()
 
         arma::cx_cube u_cube = catbox8a.u_cube;
 
-        u_cube.save("prob8a_u_cube_double");
+        u_cube.save("prob8_u_cube_double");
     }
 
     bool prob8_triple = true;
@@ -79,7 +95,7 @@ int main()
 
         arma::cx_cube u_cube = catbox8a.u_cube;
 
-        u_cube.save("prob8a_u_cube_triple");
+        u_cube.save("prob8_u_cube_triple");
     }
     
 

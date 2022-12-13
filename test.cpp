@@ -4,13 +4,13 @@ using namespace std;
 int main()
 {
 
-    bool test2 = false;
+    bool test2 = true;
     if (test2)
     {
         //sim params
-        double h1   = 0.25; //Stepsize space
+        double h1  = 0.1; //Stepsize space
         double dt1  = 2.5e-5; //Stepsize time
-        double T1 = 2.5e-5; //Stepsize time        
+        double T1   = 0.002; //Max time      
 
         Wavebox catbox1 = Wavebox(h1, dt1, T1);
 
@@ -22,6 +22,9 @@ int main()
 
         arma::cx_mat A2(A1);
         arma::cx_mat B2(B1);
+
+        A2.save("A2");
+        B2.save("B2");
 
         cout << "A1" << endl;
         cout << A2 << endl;
@@ -83,7 +86,7 @@ int main()
         std::cout << std::endl;
     }
 
-    bool test_double_slit = true;
+    bool test_double_slit = false;
     if (test_double_slit)
     {
         //sim params
