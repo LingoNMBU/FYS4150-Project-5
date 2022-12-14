@@ -19,30 +19,32 @@ int main()
 
     //potential params
     double v_0 = 1.e10; //potential
-    double x_thick = 0.02;
-    double x_center = 0.5;
-    double slit_width1 = 0.05;
-    double slit_width2 = 0.05;
-    double wall_width1 = 0.05;
-    int n_slits = 2;
+    double x_thick = 0.02; //Barrier thickness
+    double x_center = 0.5; //symmetry center of barrier
+    double slit_width1 = 0.05; //width of first slit
+    double slit_width2 = 0.05; //width of second slit
+    double wall_width1 = 0.05; //width of wall separating slits
+    int n_slits = 2; //number of slits
     std::vector<double> slit_widths;
     std::vector<double> wall_widths;
     slit_widths.push_back(slit_width1);
     slit_widths.push_back(slit_width2);
     wall_widths.push_back(wall_width1);
 
-    bool prob7a = true;
+    bool prob7a = false;
     if (prob7a)
     {
         Wavebox catbox7a = Wavebox(h, dt, T);
 
         catbox7a.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
 
-        catbox7a.simulate(false,true);
+        catbox7a.simulate(true,true);
 
         arma::cx_vec p_sum = catbox7a.p_sum;
+        p_sum.save("prob7_single_psum");
 
-        p_sum.save("prob7a");
+        arma::cx_cube u_cube = catbox7a.u_cube;
+        u_cube.save("prob7_u_cube_noV");
     }
 
     bool prob7b = true;
@@ -54,11 +56,13 @@ int main()
 
         catbox7b.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y2);
 
-        catbox7b.simulate(false,true);
+        catbox7b.simulate(true,true);
 
         arma::cx_vec p_sum = catbox7b.p_sum;
+        p_sum.save("prob7_double_psum");
 
-        p_sum.save("prob7b_psum");
+        arma::cx_cube u_cube = catbox7b.u_cube;
+        u_cube.save("prob7_u_cube_double");
     }
     
 

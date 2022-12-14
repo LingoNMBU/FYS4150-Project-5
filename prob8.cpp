@@ -18,10 +18,10 @@ int main()
 
     //potential params
     double v_0 = 1.e10; //potential
-    double x_thick = 0.02;
-    double x_center = 0.5;
-    double slit_width1 = 0.05;
-    double wall_width1 = 0.05;
+    double x_thick = 0.02; //thicknes of barrier
+    double x_center = 0.5; // symmetry center of barrier
+    double slit_width1 = 0.05; //width slit
+    double wall_width1 = 0.05; //width of wall separating slits
     int n_slits1 = 1;
     int n_slits2 = 2;
     int n_slits3 = 3;
@@ -39,13 +39,13 @@ int main()
     bool prob8_noV = true;
     if (prob8_noV)
     {
-        Wavebox catbox8a = Wavebox(h, dt, T);
+        Wavebox catbox8 = Wavebox(h, dt, T);
 
-        catbox8a.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
+        catbox8.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
 
-        catbox8a.simulate(true, false);
+        catbox8.simulate(true, false);
 
-        arma::cx_cube u_cube = catbox8a.u_cube;
+        arma::cx_cube u_cube = catbox8.u_cube;
 
         u_cube.save("prob8_u_cube_noV");
     }
@@ -53,15 +53,15 @@ int main()
     bool prob8_single = true;
     if (prob8_single)
     {
-        Wavebox catbox8a = Wavebox(h, dt, T);
+        Wavebox catbox8 = Wavebox(h, dt, T);
 
-        catbox8a.generate_slit_potential(x_thick, x_center, n_slits1 ,slit_widths ,wall_widths ,v_0);
+        catbox8.generate_slit_potential(x_thick, x_center, n_slits1 ,slit_widths ,wall_widths ,v_0);
 
-        catbox8a.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
+        catbox8.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
 
-        catbox8a.simulate(true, false);
+        catbox8.simulate(true, false);
 
-        arma::cx_cube u_cube = catbox8a.u_cube;
+        arma::cx_cube u_cube = catbox8.u_cube;
 
         u_cube.save("prob8_u_cube_single");
     }
@@ -69,15 +69,15 @@ int main()
     bool prob8_double = true;
     if (prob8_double)
     {
-        Wavebox catbox8a = Wavebox(h, dt, T);
+        Wavebox catbox8 = Wavebox(h, dt, T);
 
-        catbox8a.generate_slit_potential(x_thick, x_center, n_slits2 ,slit_widths ,wall_widths ,v_0);
+        catbox8.generate_slit_potential(x_thick, x_center, n_slits2 ,slit_widths ,wall_widths ,v_0);
 
-        catbox8a.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
+        catbox8.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
 
-        catbox8a.simulate(true, false);
+        catbox8.simulate(true, false);
 
-        arma::cx_cube u_cube = catbox8a.u_cube;
+        arma::cx_cube u_cube = catbox8.u_cube;
 
         u_cube.save("prob8_u_cube_double");
     }
@@ -85,15 +85,15 @@ int main()
     bool prob8_triple = true;
     if (prob8_triple)
     {
-        Wavebox catbox8a = Wavebox(h, dt, T);
+        Wavebox catbox8 = Wavebox(h, dt, T);
 
-        catbox8a.generate_slit_potential(x_thick, x_center, n_slits3 ,slit_widths ,wall_widths ,v_0);
+        catbox8.generate_slit_potential(x_thick, x_center, n_slits3 ,slit_widths ,wall_widths ,v_0);
 
-        catbox8a.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
+        catbox8.initialize_packet(c_x, c_y, p_x, p_y, s_x, s_y);
 
-        catbox8a.simulate(true, false);
+        catbox8.simulate(true, false);
 
-        arma::cx_cube u_cube = catbox8a.u_cube;
+        arma::cx_cube u_cube = catbox8.u_cube;
 
         u_cube.save("prob8_u_cube_triple");
     }

@@ -4,7 +4,7 @@ using namespace std;
 int main()
 {
 
-    bool test2 = true;
+    bool test2 = false;
     if (test2)
     {
         //sim params

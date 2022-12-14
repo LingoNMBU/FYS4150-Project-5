@@ -195,19 +195,6 @@ void Wavebox::generate_slit_potential(double x_thick, double x_center, int n_sli
                     V_new(i, j) = v0;
                 }           
             }
-        std::cout << std::endl;
-        std::cout << "mid" << std::endl;
-        std::cout << mid_ind << std::endl;
-        std::cout << std::endl;
-
-        std::cout << std::endl;
-        std::cout << "start1" << std::endl;
-        std::cout << slit_start << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "end1" << std::endl;
-        std::cout << slit_end << std::endl;
-        std::cout << std::endl;
     }
 
     if (n_slits == 2)
@@ -220,28 +207,6 @@ void Wavebox::generate_slit_potential(double x_thick, double x_center, int n_sli
 
         int slit_w_start   =  round((mid_ind*h - x_thick / 2.) / h);
         int slit_w_end     =  round((mid_ind*h + x_thick / 2.) / h);     
-
-        std::cout << std::endl;
-        std::cout << "mid" << std::endl;
-        std::cout << mid_ind << std::endl;
-        std::cout << std::endl;
-
-        std::cout << std::endl;
-        std::cout << "start1" << std::endl;
-        std::cout << slit1_start << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "end1" << std::endl;
-        std::cout << slit1_end << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "start2" << std::endl;
-        std::cout << slit2_start << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "end2" << std::endl;
-        std::cout << slit2_end << std::endl;
-        std::cout << std::endl;
      
         for(int i = 0 ; i < M ; i++)
         {
@@ -267,44 +232,8 @@ void Wavebox::generate_slit_potential(double x_thick, double x_center, int n_sli
         int slit3_start =  round((mid_ind*h + slit_widths[1] / 2. + wall_widths[1]) / h);
         int slit3_end   =  round((mid_ind*h + slit_widths[1] / 2. + wall_widths[1] + slit_widths[2]) / h);
 
-        //int wall1_start  =  round((mid_ind*h - slit_widths[1] / 2. - wall_widths[0]) / h);
-        //int wall1_end    =  round((mid_ind*h - slit_widths[1] / 2.) / h);     
-
-        //int wall2_start  =  round((mid_ind*h + slit_widths[1] / 2.) / h);
-        //int wall2_end    =  round((mid_ind*h + slit_widths[2] / 2. + wall_widths[1]) / h);     
-
         int slit_w_start   =  round((mid_ind*h - x_thick / 2.) / h);
         int slit_w_end     =  round((mid_ind*h + x_thick / 2.) / h);
-
-        std::cout << std::endl;
-        std::cout << "mid" << std::endl;
-        std::cout << mid_ind << std::endl;
-        std::cout << std::endl;
-
-        std::cout << std::endl;
-        std::cout << "start1" << std::endl;
-        std::cout << slit1_start << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "end1" << std::endl;
-        std::cout << slit1_end << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "start2" << std::endl;
-        std::cout << slit2_start << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "end2" << std::endl;
-        std::cout << slit2_end << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "start3" << std::endl;
-        std::cout << slit3_start << std::endl;
-        std::cout << std::endl;
-
-        std::cout << "end3" << std::endl;
-        std::cout << slit3_end << std::endl;
-        std::cout << std::endl;
 
         for(int i = 0 ; i < M ; i++)
         {
@@ -334,22 +263,17 @@ void Wavebox::generate_slit_potential(double x_thick, double x_center, int n_sli
 void Wavebox::simulate(bool store_u, bool store_p_sum)
 {
     //1. Create potential
-
-    //TODO, find elegant way to initialize potential from all dem variables
-    //for now, assume already set up
+    //Done by calling function with params
 
     //2. Initialize wavepacket
-
-    //TODO, find elegant way to initialize packet from all dem variables
-    //for now, assume already set up 
+    //Done by calling function with params
 
     //3. Initialize and create Crank-Nicolson matrices
-
     arma::sp_cx_mat A = arma::sp_cx_mat(L,L);
     arma::sp_cx_mat B = arma::sp_cx_mat(L,L);
     make_matrices(A,B);
 
-    //Initialization
+    //4. Simulate
     if (store_p_sum)
     {
         p_sum(0) = arma::accu(arma::conj(u)%u);
@@ -371,7 +295,7 @@ void Wavebox::simulate(bool store_u, bool store_p_sum)
     for (int t=1; t < N_steps+1; t++)
     {
         if (t%10 == 0)
-        {
+        {//Estimated time remaining calc
             auto stop = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop - start);
 
