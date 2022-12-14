@@ -1,4 +1,4 @@
-# FYS4150-Project-5-Schroedinger simulation
+# Project 5: Schrödinger simulation
 
 All data is generated from C++ files with the command "make all"
 
